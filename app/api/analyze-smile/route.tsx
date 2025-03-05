@@ -1,5 +1,7 @@
+// Updated API route to use the new OpenAI implementation
+
 import { NextResponse } from "next/server";
-import { analyzeSmile } from "@/lib/smile-analysis";
+import { analyzeSmile, mockAnalyzeSmile } from "@/lib/smile-analysis";
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +11,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    // Call the AI analysis function
+    // Check if we have an OpenAI API key
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn("No OpenAI API key found, using mock data");
+      // Use mock function if no API key is available
+      const results = await mockAnalyzeSmile(image);
+      return NextResponse.json({ results });
+    }
+
+    // Call the AI analysis function with the real OpenAI implementation
     const results = await analyzeSmile(image);
 
     return NextResponse.json({ results });

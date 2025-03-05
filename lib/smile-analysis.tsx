@@ -87,3 +87,55 @@ export async function analyzeSmile(imageData: string): Promise<any> {
     throw new Error("Failed to analyze smile image");
   }
 }
+
+// For testing/development, you can use this mock function instead
+export async function mockAnalyzeSmile(imageData: string): Promise<any> {
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Return mock data
+  return {
+    faceShape: getRandomItem(["Oval", "Round", "Square", "Heart", "Diamond"]),
+    teethAnalysis: {
+      color: getRandomItem(["A1", "A2", "A3", "B1", "B2"]),
+      alignment: getRandomItem([
+        "Excellent",
+        "Good",
+        "Fair",
+        "Needs Improvement",
+      ]),
+      size: getRandomItem(["Proportional", "Slightly Small", "Slightly Large"]),
+    },
+    recommendedStyles: [
+      {
+        id: "natural",
+        name: "Natural Look",
+        description:
+          "These veneers are designed to look like natural teeth with slight imperfections and translucency that mimics real enamel.",
+        compatibility: Math.floor(Math.random() * 20) + 80, // 80-99%
+        imageUrl: "/placeholder.svg?height=300&width=400",
+      },
+      {
+        id: "hollywood",
+        name: "Hollywood Smile",
+        description:
+          "Bright white, perfectly aligned veneers that create a dramatic, camera-ready smile popular among celebrities.",
+        compatibility: Math.floor(Math.random() * 30) + 65, // 65-94%
+        imageUrl: "/placeholder.svg?height=300&width=400",
+      },
+      {
+        id: "minimal",
+        name: "Minimal Enhancement",
+        description:
+          "Subtle veneers that make minor improvements while maintaining most of your natural tooth characteristics.",
+        compatibility: Math.floor(Math.random() * 25) + 70, // 70-94%
+        imageUrl: "/placeholder.svg?height=300&width=400",
+      },
+    ],
+  };
+}
+
+// Helper function to get a random item from an array
+function getRandomItem<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
