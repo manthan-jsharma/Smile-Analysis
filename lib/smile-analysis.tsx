@@ -1,16 +1,18 @@
-// Replace the mock analyzeSmile function with a real implementation that uses AI
+import { OpenAI } from "openai";
 
-import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
+// Initialize the OpenAI client with the API key from environment variables
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // This will automatically use the environment variable
+});
 
 export async function analyzeSmile(imageData: string): Promise<any> {
   try {
     // Extract the base64 image data (remove the data:image/jpeg;base64, part)
     const base64Image = imageData.split(",")[1];
 
-    // Use AI SDK to analyze the image with a vision-capable model
-    const { text } = await generateText({
-      model: openai("gpt-4o"),
+    // Use OpenAI's vision model to analyze the image
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-vision-preview", // Using GPT-4 Vision model
       messages: [
         {
           role: "user",
@@ -20,20 +22,25 @@ export async function analyzeSmile(imageData: string): Promise<any> {
               text: "Analyze this smile image for dental veneer recommendations. Provide a JSON response with: faceShape (Oval, Round, Square, Heart, or Diamond), teethAnalysis (with color using dental shade guide A1-D4, alignment, and size), and three recommendedStyles with id, name, description, and compatibility percentage.",
             },
             {
-              type: "image",
-              image: Buffer.from(base64Image, "base64"),
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`,
+              },
             },
           ],
         },
       ],
+      max_tokens: 1000,
     });
 
+    // Get the response text
+    const responseText = response.choices[0]?.message?.content || "";
+
     // Parse the response from the AI model
-    // The model should return a JSON string that we can parse
     try {
       // Find JSON in the response (in case the model adds explanatory text)
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      const jsonString = jsonMatch ? jsonMatch[0] : text;
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      const jsonString = jsonMatch ? jsonMatch[0] : responseText;
       const analysisResult = JSON.parse(jsonString);
 
       // Ensure the result has the expected structure
@@ -80,15 +87,3 @@ export async function analyzeSmile(imageData: string): Promise<any> {
     throw new Error("Failed to analyze smile image");
   }
 }
-
-// Helper function to get a random item from an array
-function getRandomItem<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-// In a real application, we would implement actual image analysis:
-// 1. Face detection to identify facial landmarks
-// 2. Smile detection to isolate the teeth
-// 3. Color analysis to determine tooth shade
-// 4. Shape analysis to determine face shape and tooth proportions
-// 5. Alignment analysis to assess current tooth positioning
